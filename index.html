@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>祥峻中醫診所 - 雙診進度看板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .hidden { display: none !important; }
+        .btn-press:active { transform: scale(0.95); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .fade-text { transition: opacity 0.8s ease-in-out; }
+        .opacity-0 { opacity: 0; }
+        .opacity-100 { opacity: 1; }
+        
+        /* 針對不同醫師的主題色 */
+        .theme-xu .text-primary { color: #0891b2; } /* Cyan-600 */
+        .theme-xu .bg-primary { background-color: #0891b2; }
+        .theme-xu .bg-primary-light { background-color: #ecfeff; } /* Cyan-50 */
+        .theme-xu .border-primary { border-color: #0891b2; }
+        .theme-xu .btn-control { @apply bg-cyan-50 text-cyan-700 hover:bg-cyan-100 border-cyan-200; }
+        
+        .theme-lin .text-primary { color: #059669; } /* Emerald-600 */
+        .theme-lin .bg-primary { background-color: #059669; }
+        .theme-lin .bg-primary-light { background-color: #ecfdf5; } /* Emerald-50 */
+        .theme-lin .border-primary { border-color: #059669; }
+        .theme-lin .btn-control { @apply bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200; }
+    </style>
+</head>
+<body class="bg-stone-50 min-h-screen text-slate-800">
+
+    <div id="loading-screen" class="fixed inset-0 bg-stone-50 z-50 flex flex-col items-center justify-center text-slate-400">
+        <i data-lucide="activity" class="w-12 h-12 text-emerald-600 animate-pulse mb-4"></i>
+        <p>連線診所資料中...</p>
+    </div>
+
+    <div id="app-container" class="hidden w-full max-w-7xl mx-auto min-h-screen flex flex-col relative shadow-2xl bg-stone-50">
+        <!-- PATIENT VIEW (看診進度看板) -->
+        <div id="patient-view" class="flex-1 flex flex-col">
+            <header class="w-full bg-slate-800 text-white py-6 px-4 shadow-lg rounded-b-[2rem] relative overflow-hidden shrink-0 z-10">
+                <div class="absolute top-0 right-0 opacity-10 transform translate-x-4 -translate-y-4"><i data-lucide="activity" width="140" height="140"></i></div>
+                <div class="relative z-10 text-center">
+                    <h1 class="text-2xl font-bold tracking-wide mb-1 drop-shadow-md">祥峻中醫診所</h1>
+                    <p class="text-slate-300 text-sm tracking-wider font-light">眼科 • 內科 • 針灸 • 全人醫療</p>
+                </div>
+            </header>
+            
+            <main class="flex-1 p-4 md:p-6 flex flex-col justify-start pt-6 gap-6">
+                
+                <!-- 醫師卡片容器 (Grid Layout) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- 一診：徐翊倫醫師 -->
+                    <div class="theme-xu bg-white rounded-3xl shadow-xl shadow-cyan-900/5 p-6 text-center border border-cyan-50 relative overflow-hidden group">
+                        <div id="status-border-xu" class="absolute top-0 left-0 w-full h-2 transition-colors duration-500 bg-cyan-600"></div>
+                        <div class="mb-4 border-b border-slate-100 pb-3">
+                            <h2 class="text-2xl font-bold text-slate-800 mb-1">一診</h2>
+                            <p class="text-xl text-cyan-700 font-medium">徐翊倫醫師</p>
+                        </div>
+                        <p class="text-stone-400 text-xs font-medium mb-2 uppercase tracking-widest">Current Number</p>
+                        <div id="display-number-xu" class="text-[6rem] leading-none font-bold font-mono tracking-tighter mb-4 text-cyan-700 transition-colors duration-300">0</div>
+                        <div class="flex justify-center">
+                            <span id="display-status-badge-xu" class="px-4 py-1.5 rounded-full text-sm font-bold shadow-sm flex items-center gap-2 transition-all duration-300 bg-cyan-100 text-cyan-800">
+                                <i id="status-icon-xu" data-lucide="activity" width="16"></i><span id="display-status-text-xu">正常看診中</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 二診：林佑彥醫師 -->
+                    <div class="theme-lin bg-white rounded-3xl shadow-xl shadow-emerald-900/5 p-6 text-center border border-emerald-50 relative overflow-hidden group">
+                        <div id="status-border-lin" class="absolute top-0 left-0 w-full h-2 transition-colors duration-500 bg-emerald-600"></div>
+                        <div class="mb-4 border-b border-slate-100 pb-3">
+                            <h2 class="text-2xl font-bold text-slate-800 mb-1">二診</h2>
+                            <p class="text-xl text-emerald-700 font-medium">林佑彥醫師</p>
+                        </div>
+                        <p class="text-stone-400 text-xs font-medium mb-2 uppercase tracking-widest">Current Number</p>
+                        <div id="display-number-lin" class="text-[6rem] leading-none font-bold font-mono tracking-tighter mb-4 text-emerald-700 transition-colors duration-300">0</div>
+                        <div class="flex justify-center">
+                            <span id="display-status-badge-lin" class="px-4 py-1.5 rounded-full text-sm font-bold shadow-sm flex items-center gap-2 transition-all duration-300 bg-emerald-100 text-emerald-800">
+                                <i id="status-icon-lin" data-lucide="activity" width="16"></i><span id="display-status-text-lin">正常看診中</span>
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 小叮嚀區塊 -->
+                <div class="bg-gradient-to-br from-white to-stone-50 rounded-2xl p-6 border border-stone-200 shadow-md relative mt-2">
+                    <div class="absolute -top-3 left-6 bg-slate-700 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1"><i data-lucide="message-circle" width="12"></i> 醫師小叮嚀</div>
+                    <div class="mt-2 text-center">
+                        <div class="mb-3 flex justify-center text-emerald-600 opacity-20"><i data-lucide="heart" width="40" height="40"></i></div>
+                        <p id="display-health-tip" class="text-stone-700 text-lg font-medium leading-relaxed font-serif fade-text opacity-100 min-h-[3.5rem] flex items-center justify-center">“靜心守神，感受呼吸的流動”</p>
+                        <div class="mt-4 flex justify-center gap-1"><span class="w-1 h-1 rounded-full bg-slate-300"></span><span class="w-1 h-1 rounded-full bg-slate-400"></span><span class="w-1 h-1 rounded-full bg-slate-300"></span></div>
+                    </div>
+                </div>
+            </main>
+            <footer class="w-full p-6 text-center text-stone-400 text-xs pb-10 shrink-0">
+                <p class="mb-2">台中市西屯區 • 專注眼疾與情緒修復</p>
+                <button id="btn-open-login" class="flex items-center gap-1 mx-auto opacity-30 hover:opacity-100 transition duration-300 cursor-pointer p-2">
+                    <i data-lucide="lock" width="10"></i><span>Admin Login</span>
+                </button>
+            </footer>
+        </div>
+
+        <!-- ADMIN VIEW (後台控制台) -->
+        <div id="admin-view" class="hidden flex-1 bg-slate-100 flex flex-col min-h-screen max-h-screen overflow-hidden w-full border-x border-slate-200 shadow-2xl relative">
+            <div class="bg-slate-800 text-white p-3 flex justify-between items-center shrink-0 shadow-md z-20">
+                <div class="flex items-center gap-2"><i data-lucide="user-cog" width="18"></i><span class="font-bold">診間控制台 (雙診同步模式)</span></div>
+                <div class="flex gap-2">
+                    <button id="btn-toggle-settings" class="text-xs bg-slate-700 px-3 py-1.5 rounded hover:bg-slate-600 transition flex items-center gap-1"><i data-lucide="settings" width="14"></i> 排程設定</button>
+                    <button id="btn-logout" class="text-xs bg-red-900/50 px-3 py-1.5 rounded hover:bg-red-800 transition">登出</button>
+                </div>
+            </div>
+
+            <!-- SETTINGS PANEL -->
+            <div id="settings-panel" class="hidden absolute inset-0 top-[52px] bg-slate-100/95 backdrop-blur z-30 flex flex-col p-6 overflow-y-auto transition-all">
+                <div class="max-w-3xl mx-auto w-full bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-bold text-xl text-slate-700 flex items-center gap-2"><i data-lucide="calendar-clock" class="text-slate-600"></i> 排程規則設定</h2>
+                        <button id="btn-save-settings" class="bg-slate-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow hover:bg-slate-800 transition">儲存規則</button>
+                    </div>
+                    
+                    <!-- 排程醫師切換 -->
+                    <div class="flex rounded-lg bg-slate-200 p-1 mb-6">
+                        <button id="sched-tab-xu" class="flex-1 py-2 text-sm font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all">徐醫師排程</button>
+                        <button id="sched-tab-lin" class="flex-1 py-2 text-sm font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all">林醫師排程</button>
+                    </div>
+
+                    <p class="text-sm text-slate-500 mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-center gap-2"><i data-lucide="info" width="16"></i> 系統會在超過 2 小時無人操作後，依此規則自動切換狀態。</p>
+                    <div id="schedule-list" class="space-y-3 mb-8"></div>
+                    <div><button id="btn-close-settings" class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition">關閉設定</button></div>
+                </div>
+            </div>
+
+            <!-- ADMIN CONTROLS (GRID LAYOUT) -->
+            <div id="admin-main-content" class="p-4 overflow-y-auto flex-1 flex flex-col gap-4">
+                
+                <!-- 強制雙欄配置 (md以上) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                    
+                    <!-- [徐醫師 控制面板] -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-cyan-100 flex flex-col gap-4 relative overflow-hidden">
+                         <div class="absolute top-0 left-0 w-full h-1 bg-cyan-500"></div>
+                         <!-- Info Header -->
+                         <div class="flex items-center justify-between border-b border-cyan-50 pb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+                                <h3 class="font-bold text-lg text-slate-700">一診 徐翊倫醫師</h3>
+                            </div>
+                            <span id="admin-badge-xu" class="px-2 py-1 rounded text-xs font-bold bg-cyan-100 text-cyan-700">正常看診中</span>
+                         </div>
+
+                         <!-- Controls Area -->
+                         <div class="flex gap-4">
+                            <!-- Left: Number Display -->
+                            <div class="flex flex-col justify-center items-center w-1/3 min-w-[100px]">
+                                <div id="admin-num-xu" class="text-6xl font-bold text-slate-800 font-mono tracking-tighter">0</div>
+                                <p class="text-xs text-slate-400 font-medium mt-1">目前號碼</p>
+                            </div>
+
+                            <!-- Right: Buttons Grid -->
+                            <div class="flex-1 grid grid-cols-2 gap-3">
+                                <!-- Top Row: Big Buttons (+2/-2) -->
+                                <button id="btn-dec-2-xu" class="btn-press h-20 rounded-2xl border-2 border-slate-100 hover:bg-slate-50 text-slate-400 text-2xl font-black flex items-center justify-center transition-colors group">
+                                    -2
+                                </button>
+                                <button id="btn-inc-2-xu" class="btn-press h-20 rounded-2xl bg-cyan-100 border-2 border-cyan-200 text-cyan-700 hover:bg-cyan-200 text-2xl font-black flex items-center justify-center shadow-sm transition-all group">
+                                    +2
+                                </button>
+
+                                <!-- Bottom Row: Small Buttons (+1/-1) -->
+                                <button id="btn-dec-1-xu" class="btn-press h-12 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold flex items-center justify-center gap-1">
+                                    <i data-lucide="minus" width="16"></i> <span class="text-sm">上一號</span>
+                                </button>
+                                <button id="btn-inc-1-xu" class="btn-press h-12 rounded-xl bg-cyan-50 border border-cyan-100 text-cyan-700 hover:bg-cyan-100 font-bold flex items-center justify-center gap-1">
+                                    <i data-lucide="plus" width="16"></i> <span class="text-sm">下一號</span>
+                                </button>
+                            </div>
+                         </div>
+                         
+                         <!-- Manual Input -->
+                         <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-500 px-1">指定</span>
+                            <input id="input-manual-xu" type="number" class="flex-1 w-16 py-1 px-2 text-lg font-mono text-center border border-slate-300 rounded focus:ring-2 focus:ring-cyan-500 outline-none bg-white">
+                            <button id="btn-manual-xu" class="btn-press bg-slate-600 text-white px-3 py-1.5 rounded font-bold text-sm shadow hover:bg-slate-700">確認</button>
+                         </div>
+
+                         <!-- Status Buttons -->
+                         <div class="grid grid-cols-2 gap-2 mt-auto">
+                            <button id="status-active-xu" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-cyan-50 hover:border-cyan-200 hover:text-cyan-700 flex items-center justify-center gap-1"><i data-lucide="sun" width="14"></i> 看診</button>
+                            <button id="status-waiting-xu" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 flex items-center justify-center gap-1"><i data-lucide="users" width="14"></i> 準備</button>
+                            <button id="status-break-xu" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 flex items-center justify-center gap-1"><i data-lucide="coffee" width="14"></i> 休息</button>
+                            <button id="status-closed-xu" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-slate-100 hover:border-slate-300 flex items-center justify-center gap-1"><i data-lucide="moon" width="14"></i> 休診</button>
+                         </div>
+                    </div>
+
+                    <!-- [林醫師 控制面板] -->
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100 flex flex-col gap-4 relative overflow-hidden">
+                         <div class="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
+                         <!-- Info Header -->
+                         <div class="flex items-center justify-between border-b border-emerald-50 pb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                <h3 class="font-bold text-lg text-slate-700">二診 林佑彥醫師</h3>
+                            </div>
+                            <span id="admin-badge-lin" class="px-2 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-700">正常看診中</span>
+                         </div>
+
+                         <!-- Controls Area -->
+                         <div class="flex gap-4">
+                            <!-- Left: Number Display -->
+                            <div class="flex flex-col justify-center items-center w-1/3 min-w-[100px]">
+                                <div id="admin-num-lin" class="text-6xl font-bold text-slate-800 font-mono tracking-tighter">0</div>
+                                <p class="text-xs text-slate-400 font-medium mt-1">目前號碼</p>
+                            </div>
+
+                            <!-- Right: Buttons Grid -->
+                            <div class="flex-1 grid grid-cols-2 gap-3">
+                                <!-- Top Row: Big Buttons (+2/-2) -->
+                                <button id="btn-dec-2-lin" class="btn-press h-20 rounded-2xl border-2 border-slate-100 hover:bg-slate-50 text-slate-400 text-2xl font-black flex items-center justify-center transition-colors group">
+                                    -2
+                                </button>
+                                <button id="btn-inc-2-lin" class="btn-press h-20 rounded-2xl bg-emerald-100 border-2 border-emerald-200 text-emerald-700 hover:bg-emerald-200 text-2xl font-black flex items-center justify-center shadow-sm transition-all group">
+                                    +2
+                                </button>
+
+                                <!-- Bottom Row: Small Buttons (+1/-1) -->
+                                <button id="btn-dec-1-lin" class="btn-press h-12 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold flex items-center justify-center gap-1">
+                                    <i data-lucide="minus" width="16"></i> <span class="text-sm">上一號</span>
+                                </button>
+                                <button id="btn-inc-1-lin" class="btn-press h-12 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 hover:bg-emerald-100 font-bold flex items-center justify-center gap-1">
+                                    <i data-lucide="plus" width="16"></i> <span class="text-sm">下一號</span>
+                                </button>
+                            </div>
+                         </div>
+                         
+                         <!-- Manual Input -->
+                         <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-500 px-1">指定</span>
+                            <input id="input-manual-lin" type="number" class="flex-1 w-16 py-1 px-2 text-lg font-mono text-center border border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                            <button id="btn-manual-lin" class="btn-press bg-slate-600 text-white px-3 py-1.5 rounded font-bold text-sm shadow hover:bg-slate-700">確認</button>
+                         </div>
+
+                         <!-- Status Buttons -->
+                         <div class="grid grid-cols-2 gap-2 mt-auto">
+                            <button id="status-active-lin" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 flex items-center justify-center gap-1"><i data-lucide="sun" width="14"></i> 看診</button>
+                            <button id="status-waiting-lin" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 flex items-center justify-center gap-1"><i data-lucide="users" width="14"></i> 準備</button>
+                            <button id="status-break-lin" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 flex items-center justify-center gap-1"><i data-lucide="coffee" width="14"></i> 休息</button>
+                            <button id="status-closed-lin" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-slate-100 hover:border-slate-300 flex items-center justify-center gap-1"><i data-lucide="moon" width="14"></i> 休診</button>
+                         </div>
+                    </div>
+
+                </div>
+
+                <!-- Shared Health Tip (共用) -->
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mt-2">
+                    <p class="text-indigo-800 text-xs font-bold mb-2 flex items-center gap-1"><i data-lucide="heart" width="12"></i> 衛教短語 (共用)</p>
+                    <div class="flex gap-2 mb-3">
+                        <input id="input-health-tip" type="text" class="flex-1 p-2 text-sm border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700" placeholder="輸入後點發布，覆蓋輪播">
+                        <button id="btn-update-tip" class="btn-press bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700">發布短語</button>
+                    </div>
+                    <p class="text-indigo-400 text-[10px] mb-1 pl-1">快速選取</p>
+                    <div id="health-presets" class="flex flex-wrap gap-2 h-20 overflow-y-auto content-start"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl">
+            <h3 class="text-lg font-bold text-slate-800 mb-4 text-center">診所人員登入</h3>
+            <!-- Removed Demo Hint -->
+            <div class="space-y-3">
+                <input id="input-email" type="email" placeholder="admin@clinic.com" class="w-full p-3 border border-slate-300 rounded-xl text-center focus:ring-2 focus:ring-emerald-500 outline-none">
+                <input id="input-password" type="password" placeholder="密碼" class="w-full p-3 border border-slate-300 rounded-xl text-center focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <p id="login-error" class="hidden text-red-500 text-xs text-center mt-3 mb-1">登入失敗，請檢查帳號密碼</p>
+            <div class="grid grid-cols-2 gap-2 mt-4">
+                <button id="btn-cancel-login" class="p-3 rounded-xl bg-slate-100 text-slate-600 font-medium">取消</button>
+                <button id="btn-confirm-login" class="p-3 rounded-xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200">登入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithEmailAndPassword, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCKRc6EagkeTr5FeR1bWj2II6uzXtCaAeo",
+            authDomain: "clinic-schedule-644e7.firebaseapp.com",
+            projectId: "clinic-schedule-644e7",
+            storageBucket: "clinic-schedule-644e7.firebasestorage.app",
+            messagingSenderId: "545585112988",
+            appId: "1:545585112988:web:71771a87f8da1800864a59",
+            measurementId: "G-Z76YV4DK3F"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "clinic-main"; 
+
+        // State
+        let currentUser = null;
+        let isAdmin = false;
+        
+        // Initial Empty State
+        const initialDocState = { number: 0, statusType: 'active', statusText: '正常看診中', updatedAt: new Date().toISOString() };
+        let currentData = {
+            xu: { ...initialDocState },
+            lin: { ...initialDocState },
+            healthTip: '放鬆心情，閉目養神'
+        };
+
+        let activeSettingDoc = 'xu'; // 'xu' or 'lin' - Only for settings panel now
+
+        let rotationInterval = null;
+        let lastAdminUpdateTimestamp = 0;
+        const dayNames = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+        
+        // Default Schedules (Two separate sets)
+        const defaultRuleSet = [
+            { day: 0, isClosed: true, waitingSlot: null, autoCloseTime: null }, 
+            { day: 1, isClosed: false, waitingSlot: { start: "08:30", end: "09:00" }, autoCloseTime: "21:30" }, 
+            { day: 2, isClosed: false, waitingSlot: { start: "08:30", end: "09:00" }, autoCloseTime: "21:30" }, 
+            { day: 3, isClosed: false, waitingSlot: { start: "13:00", end: "14:00" }, autoCloseTime: "21:30" }, 
+            { day: 4, isClosed: false, waitingSlot: { start: "08:30", end: "09:00" }, autoCloseTime: "21:30" }, 
+            { day: 5, isClosed: false, waitingSlot: { start: "13:00", end: "14:00" }, autoCloseTime: "21:30" }, 
+            { day: 6, isClosed: false, waitingSlot: { start: "08:30", end: "09:00" }, autoCloseTime: "12:30" }
+        ];
+
+        let schedules = {
+            xu: JSON.parse(JSON.stringify(defaultRuleSet)),
+            lin: JSON.parse(JSON.stringify(defaultRuleSet))
+        };
+
+        const healthPresets = [
+            "守神是修復的基礎，減少不必要的耗神", "放鬆心情，閉目養神，啟動自癒力", "深呼吸，釋放肩頸與情緒的壓力",
+            "心結會阻礙能量，請試著覺察情緒", "睡眠困擾常源於控制慾，試著放手", "情緒與臟腑相連，接納情緒即是養生",
+            "眼疾與情緒相關，多看綠色，釋放焦慮", "正視問題，釋放壓力，促進自我成長", "靜心守神，感受呼吸的流動",
+            "疾病常與心神失衡有關，請放慢腳步", "眼部保養：多看遠方綠色，減少耗神", "讓眼睛在舒適光線中呼吸，才能慢慢找回清明",
+            "讓身心都有歸位的地方，神自然會回來。", "若神無處安放，藥再好也難留住神光。", "耳靜則心定，心定則神明。"
+        ];
+
+        // DOM Elements Map
+        const els = {
+            loading: document.getElementById('loading-screen'),
+            app: document.getElementById('app-container'),
+            patientView: document.getElementById('patient-view'),
+            adminView: document.getElementById('admin-view'),
+            
+            // Patient View - Xu
+            numXu: document.getElementById('display-number-xu'),
+            badgeXu: document.getElementById('display-status-badge-xu'),
+            txtXu: document.getElementById('display-status-text-xu'),
+            iconXu: document.getElementById('status-icon-xu'),
+            borderXu: document.getElementById('status-border-xu'),
+
+            // Patient View - Lin
+            numLin: document.getElementById('display-number-lin'),
+            badgeLin: document.getElementById('display-status-badge-lin'),
+            txtLin: document.getElementById('display-status-text-lin'),
+            iconLin: document.getElementById('status-icon-lin'),
+            borderLin: document.getElementById('status-border-lin'),
+
+            // Shared
+            healthTip: document.getElementById('display-health-tip'),
+            
+            // Admin View - Xu Controls
+            adminNumXu: document.getElementById('admin-num-xu'),
+            adminBadgeXu: document.getElementById('admin-badge-xu'),
+            
+            // Admin View - Lin Controls
+            adminNumLin: document.getElementById('admin-num-lin'),
+            adminBadgeLin: document.getElementById('admin-badge-lin'),
+            
+            // Settings
+            settingsPanel: document.getElementById('settings-panel'),
+            btnToggleSettings: document.getElementById('btn-toggle-settings'),
+            btnCloseSettings: document.getElementById('btn-close-settings'),
+            btnSaveSettings: document.getElementById('btn-save-settings'),
+            scheduleList: document.getElementById('schedule-list'),
+            schedTabXu: document.getElementById('sched-tab-xu'),
+            schedTabLin: document.getElementById('sched-tab-lin'),
+            
+            // Inputs
+            inputManualXu: document.getElementById('input-manual-xu'),
+            inputManualLin: document.getElementById('input-manual-lin'),
+            healthTipInput: document.getElementById('input-health-tip'),
+            presetsContainer: document.getElementById('health-presets'),
+            
+            // Login
+            loginModal: document.getElementById('login-modal'),
+            inputEmail: document.getElementById('input-email'),
+            inputPassword: document.getElementById('input-password'),
+            loginError: document.getElementById('login-error')
+        };
+
+        // --- Logic ---
+
+        function getScheduledState(rules) {
+            const now = new Date();
+            const day = now.getDay(); 
+            const h = now.getHours();
+            const m = now.getMinutes();
+            const timeVal = h * 60 + m; 
+            const rule = rules.find(r => r.day === day);
+            if (!rule) return null;
+            if (rule.isClosed) return { statusType: 'closed', statusText: '門診休診中' };
+            if (rule.autoCloseTime) {
+                const [closeH, closeM] = rule.autoCloseTime.split(':').map(Number);
+                if (timeVal >= closeH * 60 + closeM) return { statusType: 'closed', statusText: '門診休診中' };
+            }
+            if (rule.waitingSlot && rule.waitingSlot.start && rule.waitingSlot.end) {
+                const [sh, sm] = rule.waitingSlot.start.split(':').map(Number);
+                const [eh, em] = rule.waitingSlot.end.split(':').map(Number);
+                if (timeVal >= sh * 60 + sm && timeVal < eh * 60 + em) return { statusType: 'waiting', statusText: '準備看診中' };
+            }
+            return null;
+        }
+
+        function startTipRotation() {
+            if (rotationInterval) clearInterval(rotationInterval);
+            if(!els.healthTip.textContent.trim()) updateTipDisplay(healthPresets[Math.floor(Math.random() * healthPresets.length)]);
+            rotationInterval = setInterval(() => {
+                if (Date.now() - lastAdminUpdateTimestamp < 30000) return;
+                updateTipDisplay(healthPresets[Math.floor(Math.random() * healthPresets.length)]);
+            }, 10000);
+        }
+
+        function updateTipDisplay(text) {
+            els.healthTip.classList.remove('opacity-100'); els.healthTip.classList.add('opacity-0');
+            setTimeout(() => { els.healthTip.textContent = `“${text}”`; els.healthTip.classList.remove('opacity-0'); els.healthTip.classList.add('opacity-100'); }, 500);
+        }
+
+        async function init() {
+            lucide.createIcons();
+            renderPresets();
+            startTipRotation();
+            
+            // Strict Auth Init with Error Handling for Custom Token Mismatch
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        // Use anonymous auth for public display (read-only)
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.warn("Auth initialization failed (token mismatch or other), attempting fallback to anonymous:", error);
+                    // Fallback to anonymous auth to ensure display board works even if token is bad
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (fallbackError) {
+                        console.error("Fallback anonymous auth also failed:", fallbackError);
+                    }
+                }
+            };
+            initAuth();
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    // Standard Firebase User Check
+                    if (!user.isAnonymous) {
+                        enableAdminMode();
+                    } else {
+                        // FORCE PATIENT VIEW for Anonymous Users
+                        // Even if isAdmin was somehow true, anon users can't be admins here.
+                        isAdmin = false;
+                        els.patientView.classList.remove('hidden');
+                        els.adminView.classList.add('hidden');
+                    }
+                    startListener();
+                }
+            });
+        }
+        
+        function enableAdminMode() {
+            isAdmin = true;
+            els.loginModal.classList.add('hidden');
+            els.patientView.classList.add('hidden');
+            els.adminView.classList.remove('hidden');
+            fetchSettings();
+        }
+
+        // --- Settings Management ---
+        async function fetchSettings() {
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinicStatus', 'settings');
+                const snap = await getDoc(docRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if(data.schedules) schedules = data.schedules;
+                    else if (data.schedule) schedules.lin = data.schedule;
+                } else if(isAdmin) {
+                    saveSettingsToDB();
+                }
+                renderScheduleList();
+            } catch (e) { console.error("Fetch Settings Error", e); }
+        }
+
+        async function saveSettingsToDB() {
+            // STRICT: Only allow if logged in and NOT anonymous
+            if (!currentUser || currentUser.isAnonymous) return;
+            
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinicStatus', 'settings');
+                await setDoc(docRef, { schedules: schedules }, { merge: true });
+                alert("排程規則已儲存");
+                ['xu', 'lin'].forEach(docKey => {
+                    const scheduled = getScheduledState(schedules[docKey]);
+                    if(scheduled) checkAndApplySchedule(docKey, currentData[docKey], scheduled);
+                });
+            } catch (e) { console.error("Save Error", e); }
+        }
+
+        // --- Realtime Listener ---
+        function startListener() {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinicStatus', 'current');
+            onSnapshot(docRef, (snap) => {
+                els.loading.classList.add('hidden');
+                els.app.classList.remove('hidden');
+                
+                if (snap.exists()) {
+                    const remoteData = snap.data();
+                    
+                    if (remoteData.healthTip && remoteData.healthTip !== currentData.healthTip) {
+                        lastAdminUpdateTimestamp = Date.now();
+                        updateTipDisplay(remoteData.healthTip);
+                        currentData.healthTip = remoteData.healthTip;
+                    }
+                    
+                    if (remoteData.xu) currentData.xu = { ...currentData.xu, ...remoteData.xu };
+                    
+                    if (remoteData.lin) {
+                        currentData.lin = { ...currentData.lin, ...remoteData.lin };
+                    } else if (remoteData.number !== undefined) {
+                        currentData.lin = {
+                            number: remoteData.number,
+                            statusType: remoteData.statusType || 'active',
+                            statusText: remoteData.statusText || '正常看診中',
+                            updatedAt: remoteData.updatedAt
+                        };
+                    }
+
+                    ['xu', 'lin'].forEach(docKey => {
+                        const scheduled = getScheduledState(schedules[docKey]);
+                        if(scheduled) checkAndApplySchedule(docKey, currentData[docKey], scheduled);
+                    });
+
+                    renderUI();
+                } else { 
+                    if(isAdmin) setDoc(docRef, currentData); 
+                }
+            }, (err) => console.error("Snapshot error", err));
+        }
+
+        async function checkAndApplySchedule(docKey, docData, scheduled) {
+            if (docData.statusType === scheduled.statusType) return;
+            
+            // Only admins or system (via backend func) should update. 
+            // Here we rely on the logged-in admin client to trigger this. 
+            // Anonymous clients should NOT trigger DB writes.
+            if (!currentUser || currentUser.isAnonymous) return;
+
+            const lastUpdate = docData.updatedAt ? new Date(docData.updatedAt) : new Date(0);
+            const diffHours = (new Date() - lastUpdate) / (1000 * 60 * 60);
+            
+            if (diffHours > 2) {
+                const updates = {};
+                if (scheduled.statusType === 'closed') scheduled.number = 0;
+                updates[docKey] = { ...docData, ...scheduled, updatedAt: new Date().toISOString() };
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinicStatus', 'current');
+                await setDoc(docRef, updates, { merge: true });
+            }
+        }
+
+        // --- UI Rendering ---
+        function renderUI() {
+            renderDoctorCard(currentData.xu, els.numXu, els.badgeXu, els.txtXu, els.iconXu, els.borderXu, 'bg-cyan-100 text-cyan-800', 'bg-cyan-600', 'text-cyan-700');
+            renderDoctorCard(currentData.lin, els.numLin, els.badgeLin, els.txtLin, els.iconLin, els.borderLin, 'bg-emerald-100 text-emerald-800', 'bg-emerald-600', 'text-emerald-700');
+            
+            if (isAdmin) {
+                updateAdminPanel('xu', currentData.xu, els.adminNumXu, els.adminBadgeXu);
+                updateAdminPanel('lin', currentData.lin, els.adminNumLin, els.adminBadgeLin);
+                els.healthTipInput.value = currentData.healthTip;
+            }
+            lucide.createIcons();
+        }
+
+        function renderDoctorCard(data, numEl, badgeEl, txtEl, iconEl, borderEl, activeBadgeClass, activeBorderClass, activeNumClass) {
+            numEl.textContent = data.number;
+            txtEl.textContent = data.statusText;
+
+            let badgeClass, borderClass, numClass, iconName;
+            
+            if (data.statusType === 'active') { 
+                badgeClass = activeBadgeClass; 
+                borderClass = activeBorderClass; 
+                numClass = activeNumClass; 
+                iconName = 'sun'; 
+            } else if (data.statusType === 'break') { 
+                badgeClass = 'bg-orange-100 text-orange-700'; 
+                borderClass = 'bg-orange-400'; 
+                numClass = 'text-stone-300'; 
+                iconName = 'coffee'; 
+            } else if (data.statusType === 'waiting') { 
+                badgeClass = 'bg-blue-100 text-blue-700'; 
+                borderClass = 'bg-blue-400'; 
+                numClass = 'text-blue-600'; 
+                iconName = 'users'; 
+            } else { // closed
+                badgeClass = 'bg-slate-200 text-slate-600'; 
+                borderClass = 'bg-slate-400'; 
+                numClass = 'text-slate-300'; 
+                iconName = 'moon'; 
+            }
+
+            badgeEl.className = `px-4 py-1.5 rounded-full text-sm font-bold shadow-sm flex items-center gap-2 transition-all duration-300 ${badgeClass}`;
+            borderEl.className = `absolute top-0 left-0 w-full h-2 transition-colors duration-500 ${borderClass}`;
+            numEl.className = `text-[6rem] leading-none font-bold font-mono tracking-tighter mb-4 transition-colors duration-300 ${numClass}`;
+            iconEl.setAttribute('data-lucide', iconName);
+        }
+
+        function updateAdminPanel(docKey, docData, numEl, badgeEl) {
+            numEl.textContent = docData.number;
+            badgeEl.textContent = docData.statusText;
+            
+            let badgeClass = '';
+            if (docData.statusType === 'active') badgeClass = docKey === 'xu' ? 'bg-cyan-100 text-cyan-700' : 'bg-emerald-100 text-emerald-700';
+            else if (docData.statusType === 'break') badgeClass = 'bg-orange-100 text-orange-700';
+            else if (docData.statusType === 'waiting') badgeClass = 'bg-blue-100 text-blue-700';
+            else badgeClass = 'bg-slate-200 text-slate-600';
+            badgeEl.className = `px-2 py-1 rounded text-xs font-bold ${badgeClass}`;
+
+            updateAdminStatusButtons(docKey, docData.statusType);
+        }
+
+        function updateAdminStatusButtons(docKey, activeType) {
+            const btns = { 
+                active: document.getElementById(`status-active-${docKey}`), 
+                break: document.getElementById(`status-break-${docKey}`), 
+                waiting: document.getElementById(`status-waiting-${docKey}`), 
+                closed: document.getElementById(`status-closed-${docKey}`) 
+            };
+            const baseClass = 'btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold flex items-center justify-center gap-1';
+            
+            // Reset styles
+            btns.active.className = `${baseClass} hover:bg-${docKey==='xu'?'cyan':'emerald'}-50 hover:border-${docKey==='xu'?'cyan':'emerald'}-200 hover:text-${docKey==='xu'?'cyan':'emerald'}-700`;
+            btns.break.className = `${baseClass} hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700`;
+            btns.waiting.className = `${baseClass} hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700`;
+            btns.closed.className = `${baseClass} hover:bg-slate-100 hover:border-slate-300`;
+
+            const activeBtn = Object.values(btns).find(b => b.id.includes(activeType));
+            if(activeBtn) {
+                let activeClass = '';
+                if (activeType === 'active') activeClass = docKey === 'xu' ? 'bg-cyan-600 text-white border-cyan-600 shadow-md' : 'bg-emerald-600 text-white border-emerald-600 shadow-md';
+                else if (activeType === 'break') activeClass = 'bg-orange-500 text-white border-orange-500 shadow-md';
+                else if (activeType === 'waiting') activeClass = 'bg-blue-500 text-white border-blue-500 shadow-md';
+                else if (activeType === 'closed') activeClass = 'bg-slate-500 text-white border-slate-500 shadow-md';
+                
+                activeBtn.className = `${baseClass} ${activeClass} transform scale-105`;
+            }
+        }
+        
+        function renderScheduleList() {
+            els.scheduleList.innerHTML = '';
+            const rules = schedules[activeSettingDoc];
+            
+            if(activeSettingDoc === 'xu') {
+                els.schedTabXu.className = "flex-1 py-2 text-sm font-bold rounded-md bg-white text-cyan-800 shadow-sm transition-all";
+                els.schedTabLin.className = "flex-1 py-2 text-sm font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all";
+            } else {
+                els.schedTabLin.className = "flex-1 py-2 text-sm font-bold rounded-md bg-white text-emerald-800 shadow-sm transition-all";
+                els.schedTabXu.className = "flex-1 py-2 text-sm font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all";
+            }
+
+            rules.forEach((rule, index) => {
+                const item = document.createElement('div');
+                item.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm";
+                const isClosed = rule.isClosed;
+                const start = rule.waitingSlot?.start || "08:30";
+                const end = rule.waitingSlot?.end || "09:00";
+                const autoClose = rule.autoCloseTime || "";
+                item.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-bold text-slate-700">${dayNames[rule.day]}</span>
+                        <label class="flex items-center gap-2 cursor-pointer"><span class="text-xs text-slate-500 font-medium">${isClosed ? '全日休診' : '看診日'}</span><input type="checkbox" class="toggle-closed w-5 h-5 accent-slate-500" data-idx="${index}" ${isClosed ? 'checked' : ''}></label>
+                    </div>
+                    <div class="schedule-details ${isClosed ? 'hidden opacity-50 pointer-events-none' : ''} space-y-2">
+                        <div class="flex items-center gap-2 text-sm bg-blue-50 p-2 rounded"><i data-lucide="clock" width="14" class="text-blue-500"></i><span class="text-slate-500 text-xs">自動準備:</span><input type="time" class="inp-start border rounded px-1 text-slate-600 bg-white" value="${start}" data-idx="${index}"><span class="text-slate-300">-</span><input type="time" class="inp-end border rounded px-1 text-slate-600 bg-white" value="${end}" data-idx="${index}"></div>
+                        <div class="flex items-center gap-2 text-sm bg-slate-100 p-2 rounded"><i data-lucide="moon" width="14" class="text-slate-500"></i><span class="text-slate-500 text-xs">強制休診:</span><input type="time" class="inp-close border rounded px-1 text-slate-600 bg-white w-full" value="${autoClose}" data-idx="${index}"></div>
+                    </div>`;
+                els.scheduleList.appendChild(item);
+            });
+            lucide.createIcons();
+            
+            document.querySelectorAll('.toggle-closed').forEach(cb => cb.addEventListener('change', (e) => { 
+                schedules[activeSettingDoc][e.target.getAttribute('data-idx')].isClosed = e.target.checked; renderScheduleList(); 
+            }));
+            document.querySelectorAll('.inp-start').forEach(inp => inp.addEventListener('change', (e) => { 
+                const idx = e.target.getAttribute('data-idx'); 
+                if(!schedules[activeSettingDoc][idx].waitingSlot) schedules[activeSettingDoc][idx].waitingSlot = { end: "09:00" }; 
+                schedules[activeSettingDoc][idx].waitingSlot.start = e.target.value; 
+            }));
+            document.querySelectorAll('.inp-end').forEach(inp => inp.addEventListener('change', (e) => { 
+                const idx = e.target.getAttribute('data-idx'); 
+                if(!schedules[activeSettingDoc][idx].waitingSlot) schedules[activeSettingDoc][idx].waitingSlot = { start: "08:30" }; 
+                schedules[activeSettingDoc][idx].waitingSlot.end = e.target.value; 
+            }));
+            document.querySelectorAll('.inp-close').forEach(inp => inp.addEventListener('change', (e) => { 
+                schedules[activeSettingDoc][e.target.getAttribute('data-idx')].autoCloseTime = e.target.value ? e.target.value : null; 
+            }));
+        }
+
+        function renderPresets() {
+            els.presetsContainer.innerHTML = '';
+            healthPresets.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = 'text-xs bg-white text-indigo-600 border border-indigo-100 px-3 py-1.5 rounded-full hover:bg-indigo-100 transition-colors text-left mb-1 mr-1';
+                btn.textContent = text;
+                btn.onclick = () => els.healthTipInput.value = text;
+                els.presetsContainer.appendChild(btn);
+            });
+        }
+
+        async function updateDB(updates) {
+            // STRICT: Only allow if logged in and NOT anonymous
+            if (!currentUser || currentUser.isAnonymous) return;
+
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinicStatus', 'current');
+            
+            if(updates.healthTip) {
+                currentData.healthTip = updates.healthTip;
+                renderUI();
+                try { await setDoc(docRef, { healthTip: currentData.healthTip }, { merge: true }); } catch (err) { console.error("Update failed", err); }
+            }
+        }
+        
+        async function updateDoctorDB(docKey, updates) {
+            // STRICT: Only allow if logged in and NOT anonymous
+            if (!currentUser || currentUser.isAnonymous) return;
+
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinicStatus', 'current');
+            
+            // Local Optimistic UI
+            currentData[docKey] = { ...currentData[docKey], ...updates };
+            if(updates.number !== undefined) currentData[docKey].number = Math.max(0, currentData[docKey].number);
+            
+            renderUI();
+            
+            const fullUpdate = {};
+            fullUpdate[docKey] = currentData[docKey];
+            fullUpdate[docKey].updatedAt = new Date().toISOString();
+            
+            try { await setDoc(docRef, fullUpdate, { merge: true }); } catch (err) { console.error("Update failed", err); }
+        }
+
+        // --- Event Listeners ---
+        
+        els.schedTabXu.onclick = () => { activeSettingDoc = 'xu'; renderScheduleList(); };
+        els.schedTabLin.onclick = () => { activeSettingDoc = 'lin'; renderScheduleList(); };
+
+        document.getElementById('btn-inc-2-xu').onclick = () => updateDoctorDB('xu', { number: currentData.xu.number + 2 });
+        document.getElementById('btn-dec-2-xu').onclick = () => updateDoctorDB('xu', { number: currentData.xu.number - 2 });
+        document.getElementById('btn-inc-1-xu').onclick = () => updateDoctorDB('xu', { number: currentData.xu.number + 1 });
+        document.getElementById('btn-dec-1-xu').onclick = () => updateDoctorDB('xu', { number: currentData.xu.number - 1 });
+        document.getElementById('btn-manual-xu').onclick = () => { 
+            const val = parseInt(els.inputManualXu.value); 
+            if (!isNaN(val)) { updateDoctorDB('xu', { number: val }); els.inputManualXu.value = ''; } 
+        };
+        document.getElementById('status-active-xu').onclick = () => updateDoctorDB('xu', { statusType: 'active', statusText: '正常看診中' });
+        document.getElementById('status-break-xu').onclick = () => updateDoctorDB('xu', { statusType: 'break', statusText: '醫師休息用餐中' });
+        document.getElementById('status-waiting-xu').onclick = () => updateDoctorDB('xu', { statusType: 'waiting', statusText: '準備看診中' });
+        document.getElementById('status-closed-xu').onclick = () => updateDoctorDB('xu', { statusType: 'closed', statusText: '門診休診中' });
+
+        document.getElementById('btn-inc-2-lin').onclick = () => updateDoctorDB('lin', { number: currentData.lin.number + 2 });
+        document.getElementById('btn-dec-2-lin').onclick = () => updateDoctorDB('lin', { number: currentData.lin.number - 2 });
+        document.getElementById('btn-inc-1-lin').onclick = () => updateDoctorDB('lin', { number: currentData.lin.number + 1 });
+        document.getElementById('btn-dec-1-lin').onclick = () => updateDoctorDB('lin', { number: currentData.lin.number - 1 });
+        document.getElementById('btn-manual-lin').onclick = () => { 
+            const val = parseInt(els.inputManualLin.value); 
+            if (!isNaN(val)) { updateDoctorDB('lin', { number: val }); els.inputManualLin.value = ''; } 
+        };
+        document.getElementById('status-active-lin').onclick = () => updateDoctorDB('lin', { statusType: 'active', statusText: '正常看診中' });
+        document.getElementById('status-break-lin').onclick = () => updateDoctorDB('lin', { statusType: 'break', statusText: '醫師休息用餐中' });
+        document.getElementById('status-waiting-lin').onclick = () => updateDoctorDB('lin', { statusType: 'waiting', statusText: '準備看診中' });
+        document.getElementById('status-closed-lin').onclick = () => updateDoctorDB('lin', { statusType: 'closed', statusText: '門診休診中' });
+
+        document.getElementById('btn-update-tip').onclick = () => { if(els.healthTipInput.value) updateDB({ healthTip: els.healthTipInput.value }); };
+
+        els.btnToggleSettings.onclick = () => { els.settingsPanel.classList.toggle('hidden'); if(!els.settingsPanel.classList.contains('hidden')) fetchSettings(); };
+        els.btnCloseSettings.onclick = () => els.settingsPanel.classList.add('hidden');
+        els.btnSaveSettings.onclick = () => saveSettingsToDB();
+        
+        document.getElementById('btn-open-login').onclick = () => { 
+            els.loginModal.classList.remove('hidden'); 
+            els.inputEmail.value = ''; 
+            els.inputPassword.value = ''; 
+            els.loginError.classList.add('hidden'); 
+        };
+        document.getElementById('btn-cancel-login').onclick = () => els.loginModal.classList.add('hidden');
+        document.getElementById('btn-confirm-login').onclick = async () => {
+            const email = els.inputEmail.value;
+            const password = els.inputPassword.value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // Listener will handle UI update
+            } catch (error) {
+                console.error(error);
+                els.loginError.textContent = "帳號或密碼錯誤，或無此帳號";
+                els.loginError.classList.remove('hidden');
+            }
+        };
+        document.getElementById('btn-logout').onclick = async () => { 
+            isAdmin = false;
+            await signOut(auth);
+            await signInAnonymously(auth);
+            window.location.reload(); // Refresh to clean state
+        };
+
+        init();
+    </script>
+</body>
+</html>
