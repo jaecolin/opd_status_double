@@ -22,7 +22,6 @@
         
         /* 針對不同醫師的主題色 */
         /* 徐醫師 - 改為咖啡色系 (Amber/Brown) */
-        /* 使用 Amber-900 (#78350f) 作為深咖啡色 */
         .theme-xu .text-primary { color: #78350f; } 
         .theme-xu .bg-primary { background-color: #78350f; }
         .theme-xu .bg-primary-light { background-color: #fffbeb; } /* Amber-50 */
@@ -137,7 +136,7 @@
                         <button id="sched-tab-lin" class="flex-1 py-2 text-sm font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all">林醫師排程</button>
                     </div>
 
-                    <p class="text-sm text-slate-500 mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-center gap-2"><i data-lucide="info" width="16"></i> 系統會在超過 2 小時無人操作後，依此規則自動切換狀態。</p>
+                    <p class="text-sm text-slate-500 mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-center gap-2"><i data-lucide="info" width="16"></i> 系統會依照時間自動切換狀態。請注意：需保持至少一台電腦登入後台，排程才會觸發。</p>
                     <div id="schedule-list" class="space-y-3 mb-8"></div>
                     <div><button id="btn-close-settings" class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition">關閉設定</button></div>
                 </div>
@@ -415,22 +414,40 @@
 
         function getScheduledState(rules) {
             const now = new Date();
-            const day = now.getDay(); 
+            const day = now.getDay();
             const h = now.getHours();
             const m = now.getMinutes();
-            const timeVal = h * 60 + m; 
+            const timeVal = h * 60 + m;
             const rule = rules.find(r => r.day === day);
             if (!rule) return null;
-            if (rule.isClosed) return { statusType: 'closed', statusText: '門診休診中' };
-            if (rule.autoCloseTime) {
-                const [closeH, closeM] = rule.autoCloseTime.split(':').map(Number);
-                if (timeVal >= closeH * 60 + closeM) return { statusType: 'closed', statusText: '門診休診中' };
-            }
+
+            // Strict Rules
+            // 1. Waiting Slot (Auto Open)
             if (rule.waitingSlot && rule.waitingSlot.start && rule.waitingSlot.end) {
                 const [sh, sm] = rule.waitingSlot.start.split(':').map(Number);
                 const [eh, em] = rule.waitingSlot.end.split(':').map(Number);
-                if (timeVal >= sh * 60 + sm && timeVal < eh * 60 + em) return { statusType: 'waiting', statusText: '準備看診中' };
+                const startVal = sh * 60 + sm;
+                const endVal = eh * 60 + em;
+                
+                if (timeVal >= startVal && timeVal < endVal) {
+                    return { statusType: 'waiting', statusText: '準備看診中' };
+                }
             }
+
+            // 2. Closed Rules
+            // A. Whole day closed
+            if (rule.isClosed) {
+                return { statusType: 'closed', statusText: '門診休診中', number: 0 };
+            }
+            // B. Auto Close Time passed (Force Close after time)
+            if (rule.autoCloseTime) {
+                const [closeH, closeM] = rule.autoCloseTime.split(':').map(Number);
+                const closeVal = closeH * 60 + closeM;
+                if (timeVal >= closeVal) {
+                    return { statusType: 'closed', statusText: '門診休診中', number: 0 };
+                }
+            }
+            
             return null;
         }
 
@@ -453,36 +470,46 @@
             renderPresets();
             startTipRotation();
             
-            // Strict Auth Init with Error Handling for Custom Token Mismatch
+            // Strict Auth Init with Error Handling
             const initAuth = async () => {
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } else {
-                        // Use anonymous auth for public display (read-only)
                         await signInAnonymously(auth);
                     }
                 } catch (error) {
-                    console.warn("Auth initialization failed (token mismatch or other), attempting fallback to anonymous:", error);
-                    // Fallback to anonymous auth to ensure display board works even if token is bad
-                    try {
-                        await signInAnonymously(auth);
-                    } catch (fallbackError) {
-                        console.error("Fallback anonymous auth also failed:", fallbackError);
-                    }
+                    console.warn("Auth initialization failed, fallback:", error);
+                    try { await signInAnonymously(auth); } catch (e) {}
                 }
             };
             initAuth();
 
+            // Strict Schedule Enforcement Interval (Every 5 seconds)
+            setInterval(() => {
+                if (!isAdmin) return; // Only run on Admin client to avoid conflicts
+                
+                ['xu', 'lin'].forEach(docKey => {
+                    const rules = schedules[docKey];
+                    const mandate = getScheduledState(rules);
+                    
+                    if (mandate) {
+                        // Check if current status mismatches mandate
+                        const currentStatus = currentData[docKey].statusType;
+                        if (currentStatus !== mandate.statusType) {
+                            console.log(`Enforcing schedule for ${docKey}: ${mandate.statusType}`);
+                            updateDoctorDB(docKey, mandate);
+                        }
+                    }
+                });
+            }, 5000);
+
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
                 if (user) {
-                    // Standard Firebase User Check
                     if (!user.isAnonymous) {
                         enableAdminMode();
                     } else {
-                        // FORCE PATIENT VIEW for Anonymous Users
-                        // Even if isAdmin was somehow true, anon users can't be admins here.
                         isAdmin = false;
                         els.patientView.classList.remove('hidden');
                         els.adminView.classList.add('hidden');
@@ -524,10 +551,7 @@
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinicStatus', 'settings');
                 await setDoc(docRef, { schedules: schedules }, { merge: true });
                 alert("排程規則已儲存");
-                ['xu', 'lin'].forEach(docKey => {
-                    const scheduled = getScheduledState(schedules[docKey]);
-                    if(scheduled) checkAndApplySchedule(docKey, currentData[docKey], scheduled);
-                });
+                // Immediate check triggered by interval soon
             } catch (e) { console.error("Save Error", e); }
         }
 
@@ -559,37 +583,11 @@
                             updatedAt: remoteData.updatedAt
                         };
                     }
-
-                    ['xu', 'lin'].forEach(docKey => {
-                        const scheduled = getScheduledState(schedules[docKey]);
-                        if(scheduled) checkAndApplySchedule(docKey, currentData[docKey], scheduled);
-                    });
-
                     renderUI();
                 } else { 
                     if(isAdmin) setDoc(docRef, currentData); 
                 }
             }, (err) => console.error("Snapshot error", err));
-        }
-
-        async function checkAndApplySchedule(docKey, docData, scheduled) {
-            if (docData.statusType === scheduled.statusType) return;
-            
-            // Only admins or system (via backend func) should update. 
-            // Here we rely on the logged-in admin client to trigger this. 
-            // Anonymous clients should NOT trigger DB writes.
-            if (!currentUser || currentUser.isAnonymous) return;
-
-            const lastUpdate = docData.updatedAt ? new Date(docData.updatedAt) : new Date(0);
-            const diffHours = (new Date() - lastUpdate) / (1000 * 60 * 60);
-            
-            if (diffHours > 2) {
-                const updates = {};
-                if (scheduled.statusType === 'closed') scheduled.number = 0;
-                updates[docKey] = { ...docData, ...scheduled, updatedAt: new Date().toISOString() };
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinicStatus', 'current');
-                await setDoc(docRef, updates, { merge: true });
-            }
         }
 
         // --- UI Rendering ---
