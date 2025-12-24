@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 加入 no-referrer 以增加 API 連線穩定性，避免來源檢查錯誤 -->
-    <meta name="referrer" content="no-referrer">
     <title>祥峻中醫診所 - 雙診進度看板</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -23,12 +21,14 @@
         .opacity-100 { opacity: 1; }
         
         /* 針對不同醫師的主題色 */
-        .theme-xu .text-primary { color: #0891b2; } /* Cyan-600 */
-        .theme-xu .bg-primary { background-color: #0891b2; }
-        .theme-xu .bg-primary-light { background-color: #ecfeff; } /* Cyan-50 */
-        .theme-xu .border-primary { border-color: #0891b2; }
-        .theme-xu .btn-control { @apply bg-cyan-50 text-cyan-700 hover:bg-cyan-100 border-cyan-200; }
+        /* 徐醫師 - 改為咖啡色系 (Amber/Brown) */
+        .theme-xu .text-primary { color: #78350f; } 
+        .theme-xu .bg-primary { background-color: #78350f; }
+        .theme-xu .bg-primary-light { background-color: #fffbeb; } /* Amber-50 */
+        .theme-xu .border-primary { border-color: #78350f; }
+        .theme-xu .btn-control { @apply bg-amber-50 text-amber-900 hover:bg-amber-100 border-amber-200; }
         
+        /* 林醫師 - 維持綠色系 (Emerald) */
         .theme-lin .text-primary { color: #059669; } /* Emerald-600 */
         .theme-lin .bg-primary { background-color: #059669; }
         .theme-lin .bg-primary-light { background-color: #ecfdf5; } /* Emerald-50 */
@@ -46,11 +46,12 @@
     <div id="app-container" class="hidden w-full max-w-7xl mx-auto min-h-screen flex flex-col relative shadow-2xl bg-stone-50">
         <!-- PATIENT VIEW (看診進度看板) -->
         <div id="patient-view" class="flex-1 flex flex-col">
-            <header class="w-full bg-slate-800 text-white py-6 px-4 shadow-lg rounded-b-[2rem] relative overflow-hidden shrink-0 z-10">
+            <!-- Header 改為診所主色系：深褐色 (Amber-950) -->
+            <header class="w-full bg-amber-950 text-white py-6 px-4 shadow-lg rounded-b-[2rem] relative overflow-hidden shrink-0 z-10">
                 <div class="absolute top-0 right-0 opacity-10 transform translate-x-4 -translate-y-4"><i data-lucide="activity" width="140" height="140"></i></div>
                 <div class="relative z-10 text-center">
-                    <h1 class="text-2xl font-bold tracking-wide mb-1 drop-shadow-md">祥峻中醫診所</h1>
-                    <p class="text-slate-300 text-sm tracking-wider font-light">眼科 • 內科 • 針灸 • 全人醫療</p>
+                    <h1 class="text-2xl font-bold tracking-wide mb-1 drop-shadow-md text-amber-50">祥峻中醫診所</h1>
+                    <p class="text-amber-200 text-sm tracking-wider font-light">內科 • 眼科 • 針灸 • 全人醫療</p>
                 </div>
             </header>
             
@@ -59,23 +60,23 @@
                 <!-- 醫師卡片容器 (Grid Layout) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
-                    <!-- 一診：徐翊倫醫師 -->
-                    <div class="theme-xu bg-white rounded-3xl shadow-xl shadow-cyan-900/5 p-6 text-center border border-cyan-50 relative overflow-hidden group">
-                        <div id="status-border-xu" class="absolute top-0 left-0 w-full h-2 transition-colors duration-500 bg-cyan-600"></div>
-                        <div class="mb-4 border-b border-slate-100 pb-3">
+                    <!-- 一診：徐翊倫醫師 (Coffee Theme) -->
+                    <div class="theme-xu bg-white rounded-3xl shadow-xl shadow-amber-900/5 p-6 text-center border border-amber-50 relative overflow-hidden group">
+                        <div id="status-border-xu" class="absolute top-0 left-0 w-full h-2 transition-colors duration-500 bg-amber-800"></div>
+                        <div class="mb-4 border-b border-amber-100 pb-3">
                             <h2 class="text-2xl font-bold text-slate-800 mb-1">一診</h2>
-                            <p class="text-xl text-cyan-700 font-medium">徐翊倫醫師</p>
+                            <p class="text-xl text-amber-900 font-medium">徐翊倫醫師</p>
                         </div>
                         <p class="text-stone-400 text-xs font-medium mb-2 uppercase tracking-widest">Current Number</p>
-                        <div id="display-number-xu" class="text-[6rem] leading-none font-bold font-mono tracking-tighter mb-4 text-cyan-700 transition-colors duration-300">0</div>
+                        <div id="display-number-xu" class="text-[6rem] leading-none font-bold font-mono tracking-tighter mb-4 text-amber-900 transition-colors duration-300">0</div>
                         <div class="flex justify-center">
-                            <span id="display-status-badge-xu" class="px-4 py-1.5 rounded-full text-sm font-bold shadow-sm flex items-center gap-2 transition-all duration-300 bg-cyan-100 text-cyan-800">
+                            <span id="display-status-badge-xu" class="px-4 py-1.5 rounded-full text-sm font-bold shadow-sm flex items-center gap-2 transition-all duration-300 bg-amber-100 text-amber-900">
                                 <i id="status-icon-xu" data-lucide="activity" width="16"></i><span id="display-status-text-xu">正常看診中</span>
                             </span>
                         </div>
                     </div>
 
-                    <!-- 二診：林佑彥醫師 -->
+                    <!-- 二診：林佑彥醫師 (Emerald Theme) -->
                     <div class="theme-lin bg-white rounded-3xl shadow-xl shadow-emerald-900/5 p-6 text-center border border-emerald-50 relative overflow-hidden group">
                         <div id="status-border-lin" class="absolute top-0 left-0 w-full h-2 transition-colors duration-500 bg-emerald-600"></div>
                         <div class="mb-4 border-b border-slate-100 pb-3">
@@ -103,39 +104,70 @@
                     </div>
                 </div>
             </main>
-            <footer class="w-full p-6 text-center text-stone-400 text-xs pb-10 shrink-0">
-                <p class="mb-2">台中市西屯區 • 專注眼疾與情緒修復</p>
-                <button id="btn-open-login" class="flex items-center gap-1 mx-auto opacity-30 hover:opacity-100 transition duration-300 cursor-pointer p-2">
-                    <i data-lucide="lock" width="10"></i><span>Admin Login</span>
-                </button>
+            <footer class="w-full p-6 flex justify-between items-center text-stone-400 text-xs pb-10 shrink-0">
+                <div class="flex-1"></div>
+                <div class="flex-1 text-center"><p class="mb-2">台中市西屯區 • 專注眼疾與情緒修復</p></div>
+                <div class="flex-1 flex justify-end gap-2">
+                    <!-- 預設顯示為開啟狀態 -->
+                    <button id="btn-enable-audio" class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors shadow-sm">
+                        <i id="icon-audio" data-lucide="volume-2" width="14"></i> <span id="text-audio">語音已開啟</span>
+                    </button>
+                    <button id="btn-open-login" class="flex items-center gap-1 opacity-30 hover:opacity-100 transition duration-300 cursor-pointer p-2">
+                        <i data-lucide="lock" width="10"></i><span>Admin</span>
+                    </button>
+                </div>
             </footer>
         </div>
 
         <!-- ADMIN VIEW (後台控制台) -->
         <div id="admin-view" class="hidden flex-1 bg-slate-100 flex flex-col min-h-screen max-h-screen overflow-hidden w-full border-x border-slate-200 shadow-2xl relative">
-            <div class="bg-slate-800 text-white p-3 flex justify-between items-center shrink-0 shadow-md z-20">
-                <div class="flex items-center gap-2"><i data-lucide="user-cog" width="18"></i><span class="font-bold">診間控制台 (雙診同步模式)</span></div>
+            <div class="bg-amber-950 text-white p-3 flex justify-between items-center shrink-0 shadow-md z-20">
+                <div class="flex items-center gap-2"><i data-lucide="user-cog" width="18"></i><span id="admin-title" class="font-bold">診間控制台</span></div>
                 <div class="flex gap-2">
-                    <button id="btn-toggle-settings" class="text-xs bg-slate-700 px-3 py-1.5 rounded hover:bg-slate-600 transition flex items-center gap-1"><i data-lucide="settings" width="14"></i> 排程設定</button>
+                    <!-- 新增切換身分按鈕 -->
+                    <button id="btn-open-role-switch" class="text-xs bg-amber-900 border border-amber-800 px-3 py-1.5 rounded hover:bg-amber-800 transition flex items-center gap-1"><i data-lucide="users" width="14"></i> 切換身分</button>
+                    <button id="btn-toggle-settings" class="text-xs bg-amber-900 border border-amber-800 px-3 py-1.5 rounded hover:bg-amber-800 transition flex items-center gap-1"><i data-lucide="settings" width="14"></i> 排程設定</button>
                     <button id="btn-logout" class="text-xs bg-red-900/50 px-3 py-1.5 rounded hover:bg-red-800 transition">登出</button>
                 </div>
             </div>
 
-            <!-- SETTINGS PANEL -->
+            <!-- ROLE SWITCH MODAL (後台身分切換) -->
+            <div id="role-switch-modal" class="hidden absolute inset-0 top-[52px] bg-stone-900/80 backdrop-blur-sm z-40 flex items-center justify-center p-4 transition-all">
+                <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-stone-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 text-center">請選擇操作身分</h3>
+                    <div class="space-y-3">
+                        <button class="w-full p-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-left flex items-center gap-3 transition-colors role-option" data-role="admin">
+                            <span class="w-3 h-3 rounded-full bg-slate-500"></span> 👑 診所管理者 (全部權限)
+                        </button>
+                        <button class="w-full p-4 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-left flex items-center gap-3 transition-colors role-option" data-role="xu">
+                            <span class="w-3 h-3 rounded-full bg-amber-600"></span> 👨‍⚕️ 醫師 - 一診 (徐)
+                        </button>
+                        <button class="w-full p-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-left flex items-center gap-3 transition-colors role-option" data-role="lin">
+                            <span class="w-3 h-3 rounded-full bg-emerald-600"></span> 👩‍⚕️ 醫師 - 二診 (林)
+                        </button>
+                        <button class="w-full p-4 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold text-left flex items-center gap-3 transition-colors role-option" data-role="counter">
+                            <span class="w-3 h-3 rounded-full bg-indigo-600"></span> 💁 櫃台人員 (衛教短語)
+                        </button>
+                    </div>
+                    <button id="btn-close-role-switch" class="mt-6 w-full py-2 text-slate-400 text-sm font-medium hover:text-slate-600">取消</button>
+                </div>
+            </div>
+
+            <!-- SETTINGS PANEL (僅管理者可見) -->
             <div id="settings-panel" class="hidden absolute inset-0 top-[52px] bg-slate-100/95 backdrop-blur z-30 flex flex-col p-6 overflow-y-auto transition-all">
                 <div class="max-w-3xl mx-auto w-full bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="font-bold text-xl text-slate-700 flex items-center gap-2"><i data-lucide="calendar-clock" class="text-slate-600"></i> 排程規則設定</h2>
-                        <button id="btn-save-settings" class="bg-slate-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow hover:bg-slate-800 transition">儲存規則</button>
+                        <button id="btn-save-settings" class="bg-amber-900 text-white px-6 py-2 rounded-lg text-sm font-bold shadow hover:bg-amber-800 transition">儲存規則</button>
                     </div>
                     
                     <!-- 排程醫師切換 -->
                     <div class="flex rounded-lg bg-slate-200 p-1 mb-6">
-                        <button id="sched-tab-xu" class="flex-1 py-2 text-sm font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all">徐醫師排程</button>
+                        <button id="sched-tab-xu" class="flex-1 py-2 text-sm font-bold rounded-md bg-white text-amber-900 shadow-sm transition-all">徐醫師排程</button>
                         <button id="sched-tab-lin" class="flex-1 py-2 text-sm font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all">林醫師排程</button>
                     </div>
 
-                    <p class="text-sm text-slate-500 mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-center gap-2"><i data-lucide="info" width="16"></i> 系統會在超過 2 小時無人操作後，依此規則自動切換狀態。</p>
+                    <p class="text-sm text-slate-500 mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-center gap-2"><i data-lucide="info" width="16"></i> 系統會依照時間自動切換狀態。請注意：需保持至少一台電腦登入後台，排程才會觸發。</p>
                     <div id="schedule-list" class="space-y-3 mb-8"></div>
                     <div><button id="btn-close-settings" class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition">關閉設定</button></div>
                 </div>
@@ -145,18 +177,18 @@
             <div id="admin-main-content" class="p-4 overflow-y-auto flex-1 flex flex-col gap-4">
                 
                 <!-- 強制雙欄配置 (md以上) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                <div id="admin-grid-layout" class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
                     
-                    <!-- [徐醫師 控制面板] -->
-                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-cyan-100 flex flex-col gap-4 relative overflow-hidden">
-                         <div class="absolute top-0 left-0 w-full h-1 bg-cyan-500"></div>
+                    <!-- [徐醫師 控制面板 (Coffee Theme)] -->
+                    <div id="admin-panel-xu" class="bg-white rounded-2xl p-4 shadow-sm border border-amber-100 flex flex-col gap-4 relative overflow-hidden transition-all duration-300">
+                         <div class="absolute top-0 left-0 w-full h-1 bg-amber-800"></div>
                          <!-- Info Header -->
-                         <div class="flex items-center justify-between border-b border-cyan-50 pb-2">
+                         <div class="flex items-center justify-between border-b border-amber-50 pb-2">
                             <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-amber-800"></span>
                                 <h3 class="font-bold text-lg text-slate-700">一診 徐翊倫醫師</h3>
                             </div>
-                            <span id="admin-badge-xu" class="px-2 py-1 rounded text-xs font-bold bg-cyan-100 text-cyan-700">正常看診中</span>
+                            <span id="admin-badge-xu" class="px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-900">正常看診中</span>
                          </div>
 
                          <!-- Controls Area -->
@@ -173,7 +205,7 @@
                                 <button id="btn-dec-2-xu" class="btn-press h-20 rounded-2xl border-2 border-slate-100 hover:bg-slate-50 text-slate-400 text-2xl font-black flex items-center justify-center transition-colors group">
                                     -2
                                 </button>
-                                <button id="btn-inc-2-xu" class="btn-press h-20 rounded-2xl bg-cyan-100 border-2 border-cyan-200 text-cyan-700 hover:bg-cyan-200 text-2xl font-black flex items-center justify-center shadow-sm transition-all group">
+                                <button id="btn-inc-2-xu" class="btn-press h-20 rounded-2xl bg-amber-100 border-2 border-amber-200 text-amber-900 hover:bg-amber-200 text-2xl font-black flex items-center justify-center shadow-sm transition-all group">
                                     +2
                                 </button>
 
@@ -181,7 +213,7 @@
                                 <button id="btn-dec-1-xu" class="btn-press h-12 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold flex items-center justify-center gap-1">
                                     <i data-lucide="minus" width="16"></i> <span class="text-sm">上一號</span>
                                 </button>
-                                <button id="btn-inc-1-xu" class="btn-press h-12 rounded-xl bg-cyan-50 border border-cyan-100 text-cyan-700 hover:bg-cyan-100 font-bold flex items-center justify-center gap-1">
+                                <button id="btn-inc-1-xu" class="btn-press h-12 rounded-xl bg-amber-50 border border-amber-100 text-amber-900 hover:bg-amber-100 font-bold flex items-center justify-center gap-1">
                                     <i data-lucide="plus" width="16"></i> <span class="text-sm">下一號</span>
                                 </button>
                             </div>
@@ -190,21 +222,21 @@
                          <!-- Manual Input -->
                          <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 flex items-center gap-2">
                             <span class="text-xs font-bold text-slate-500 px-1">指定</span>
-                            <input id="input-manual-xu" type="number" class="flex-1 w-16 py-1 px-2 text-lg font-mono text-center border border-slate-300 rounded focus:ring-2 focus:ring-cyan-500 outline-none bg-white">
-                            <button id="btn-manual-xu" class="btn-press bg-slate-600 text-white px-3 py-1.5 rounded font-bold text-sm shadow hover:bg-slate-700">確認</button>
+                            <input id="input-manual-xu" type="number" class="flex-1 w-16 py-1 px-2 text-lg font-mono text-center border border-slate-300 rounded focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                            <button id="btn-manual-xu" class="btn-press bg-amber-800 text-white px-3 py-1.5 rounded font-bold text-sm shadow hover:bg-amber-900">確認</button>
                          </div>
 
                          <!-- Status Buttons -->
                          <div class="grid grid-cols-2 gap-2 mt-auto">
-                            <button id="status-active-xu" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-cyan-50 hover:border-cyan-200 hover:text-cyan-700 flex items-center justify-center gap-1"><i data-lucide="sun" width="14"></i> 看診</button>
+                            <button id="status-active-xu" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-amber-50 hover:border-amber-200 hover:text-amber-900 flex items-center justify-center gap-1"><i data-lucide="sun" width="14"></i> 看診</button>
                             <button id="status-waiting-xu" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 flex items-center justify-center gap-1"><i data-lucide="users" width="14"></i> 準備</button>
                             <button id="status-break-xu" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 flex items-center justify-center gap-1"><i data-lucide="coffee" width="14"></i> 休息</button>
                             <button id="status-closed-xu" class="btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold hover:bg-slate-100 hover:border-slate-300 flex items-center justify-center gap-1"><i data-lucide="moon" width="14"></i> 休診</button>
                          </div>
                     </div>
 
-                    <!-- [林醫師 控制面板] -->
-                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100 flex flex-col gap-4 relative overflow-hidden">
+                    <!-- [林醫師 控制面板 (Emerald Theme)] -->
+                    <div id="admin-panel-lin" class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100 flex flex-col gap-4 relative overflow-hidden transition-all duration-300">
                          <div class="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
                          <!-- Info Header -->
                          <div class="flex items-center justify-between border-b border-emerald-50 pb-2">
@@ -262,7 +294,7 @@
                 </div>
 
                 <!-- Shared Health Tip (共用) -->
-                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mt-2">
+                <div id="admin-panel-tips" class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mt-2">
                     <p class="text-indigo-800 text-xs font-bold mb-2 flex items-center gap-1"><i data-lucide="heart" width="12"></i> 衛教短語 (共用)</p>
                     <div class="flex gap-2 mb-3">
                         <input id="input-health-tip" type="text" class="flex-1 p-2 text-sm border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700" placeholder="輸入後點發布，覆蓋輪播">
@@ -275,12 +307,24 @@
         </div>
     </div>
 
-    <!-- Login Modal -->
+    <!-- Login Modal (Updated with Roles) -->
     <div id="login-modal" class="hidden fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl">
             <h3 class="text-lg font-bold text-slate-800 mb-4 text-center">診所人員登入</h3>
-            <!-- Removed Demo Hint -->
             <div class="space-y-3">
+                <!-- Role Selector -->
+                <div class="relative">
+                    <select id="login-role" class="w-full p-3 border border-slate-300 rounded-xl text-center focus:ring-2 focus:ring-emerald-500 outline-none appearance-none bg-white text-slate-700 font-bold">
+                        <option value="admin">👑 診所管理者 (全部權限)</option>
+                        <option value="xu">👨‍⚕️ 醫師 - 一診 (徐)</option>
+                        <option value="lin">👨‍⚕️ 醫師 - 二診 (林)</option>
+                        <option value="counter">💁 櫃台人員 (衛教短語)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                        <i data-lucide="chevron-down" width="16"></i>
+                    </div>
+                </div>
+                
                 <input id="input-email" type="email" placeholder="admin@clinic.com" class="w-full p-3 border border-slate-300 rounded-xl text-center focus:ring-2 focus:ring-emerald-500 outline-none">
                 <input id="input-password" type="password" placeholder="密碼" class="w-full p-3 border border-slate-300 rounded-xl text-center focus:ring-2 focus:ring-emerald-500 outline-none">
             </div>
@@ -316,7 +360,13 @@
         // State
         let currentUser = null;
         let isAdmin = false;
+        let currentRole = 'admin'; // 'admin', 'xu', 'lin', 'counter'
         
+        // Audio State: Default ON
+        let audioEnabled = true;
+        const synth = window.speechSynthesis;
+        let lastKnownNums = { xu: null, lin: null };
+
         // Initial Empty State
         const initialDocState = { number: 0, statusType: 'active', statusText: '正常看診中', updatedAt: new Date().toISOString() };
         let currentData = {
@@ -325,7 +375,7 @@
             healthTip: '放鬆心情，閉目養神'
         };
 
-        let activeSettingDoc = 'xu'; // 'xu' or 'lin' - Only for settings panel now
+        let activeSettingDoc = 'xu'; // 'xu' or 'lin'
 
         let rotationInterval = null;
         let lastAdminUpdateTimestamp = 0;
@@ -378,6 +428,21 @@
 
             // Shared
             healthTip: document.getElementById('display-health-tip'),
+            btnEnableAudio: document.getElementById('btn-enable-audio'),
+            iconAudio: document.getElementById('icon-audio'),
+            textAudio: document.getElementById('text-audio'),
+            
+            // Admin Panels
+            adminGridLayout: document.getElementById('admin-grid-layout'),
+            adminPanelXu: document.getElementById('admin-panel-xu'),
+            adminPanelLin: document.getElementById('admin-panel-lin'),
+            adminPanelTips: document.getElementById('admin-panel-tips'),
+            adminTitle: document.getElementById('admin-title'),
+            
+            // Role Switching
+            btnOpenRoleSwitch: document.getElementById('btn-open-role-switch'),
+            roleSwitchModal: document.getElementById('role-switch-modal'),
+            btnCloseRoleSwitch: document.getElementById('btn-close-role-switch'),
             
             // Admin View - Xu Controls
             adminNumXu: document.getElementById('admin-num-xu'),
@@ -404,6 +469,7 @@
             
             // Login
             loginModal: document.getElementById('login-modal'),
+            loginRole: document.getElementById('login-role'),
             inputEmail: document.getElementById('input-email'),
             inputPassword: document.getElementById('input-password'),
             loginError: document.getElementById('login-error')
@@ -411,23 +477,95 @@
 
         // --- Logic ---
 
+        function applyRoleLayout(role) {
+            currentRole = role;
+            
+            // Reset visibility
+            els.adminPanelXu.classList.remove('hidden');
+            els.adminPanelLin.classList.remove('hidden');
+            els.adminPanelTips.classList.remove('hidden');
+            els.btnToggleSettings.classList.remove('hidden');
+            
+            // Reset Layout
+            els.adminGridLayout.className = "grid grid-cols-1 md:grid-cols-2 gap-4 flex-1";
+
+            if (role === 'admin') {
+                els.adminTitle.textContent = "診間控制台 (管理者模式)";
+                // All visible, standard layout
+            } 
+            else if (role === 'xu') {
+                els.adminTitle.textContent = "一診控制台 (徐醫師)";
+                els.adminPanelLin.classList.add('hidden');
+                els.adminPanelTips.classList.add('hidden');
+                els.adminGridLayout.className = "flex flex-col flex-1"; // Full width
+            } 
+            else if (role === 'lin') {
+                els.adminTitle.textContent = "二診控制台 (林醫師)";
+                els.adminPanelXu.classList.add('hidden');
+                els.adminPanelTips.classList.add('hidden');
+                els.adminGridLayout.className = "flex flex-col flex-1"; // Full width
+            } 
+            else if (role === 'counter') {
+                els.adminTitle.textContent = "櫃台控制台";
+                // Hide Doctor Controls to prevent accidental clicks
+                els.adminPanelXu.classList.add('hidden');
+                els.adminPanelLin.classList.add('hidden');
+                els.btnToggleSettings.classList.add('hidden'); // Counter can't change schedule
+                els.adminGridLayout.className = "hidden"; // Hide the grid entirely
+            }
+        }
+
+        // Speech Function
+        function speak(text) {
+            if (!audioEnabled || !synth) return;
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-TW';
+            utterance.rate = 0.9; 
+            synth.speak(utterance);
+        }
+
+        function toggleAudio() {
+            if (!audioEnabled) {
+                const utterance = new SpeechSynthesisUtterance('');
+                synth.speak(utterance);
+                audioEnabled = true;
+                els.iconAudio.setAttribute('data-lucide', 'volume-2');
+                els.textAudio.textContent = '語音已開啟';
+                els.btnEnableAudio.className = "flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors shadow-sm";
+                speak('語音播報已啟用');
+            } else {
+                audioEnabled = false;
+                els.iconAudio.setAttribute('data-lucide', 'volume-x');
+                els.textAudio.textContent = '啟用語音';
+                els.btnEnableAudio.className = "flex items-center gap-1 px-3 py-1.5 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-600 transition-colors shadow-sm";
+            }
+            lucide.createIcons();
+        }
+
         function getScheduledState(rules) {
             const now = new Date();
-            const day = now.getDay(); 
+            const day = now.getDay();
             const h = now.getHours();
             const m = now.getMinutes();
-            const timeVal = h * 60 + m; 
+            const timeVal = h * 60 + m;
             const rule = rules.find(r => r.day === day);
             if (!rule) return null;
-            if (rule.isClosed) return { statusType: 'closed', statusText: '門診休診中' };
-            if (rule.autoCloseTime) {
-                const [closeH, closeM] = rule.autoCloseTime.split(':').map(Number);
-                if (timeVal >= closeH * 60 + closeM) return { statusType: 'closed', statusText: '門診休診中' };
-            }
+
             if (rule.waitingSlot && rule.waitingSlot.start && rule.waitingSlot.end) {
                 const [sh, sm] = rule.waitingSlot.start.split(':').map(Number);
                 const [eh, em] = rule.waitingSlot.end.split(':').map(Number);
-                if (timeVal >= sh * 60 + sm && timeVal < eh * 60 + em) return { statusType: 'waiting', statusText: '準備看診中' };
+                const startVal = sh * 60 + sm;
+                const endVal = eh * 60 + em;
+                if (timeVal >= startVal && timeVal < endVal) return { statusType: 'waiting', statusText: '準備看診中' };
+            }
+
+            if (rule.isClosed) return { statusType: 'closed', statusText: '門診休診中', number: 0 };
+            
+            if (rule.autoCloseTime) {
+                const [closeH, closeM] = rule.autoCloseTime.split(':').map(Number);
+                const closeVal = closeH * 60 + closeM;
+                if (timeVal >= closeVal) return { statusType: 'closed', statusText: '門診休診中', number: 0 };
             }
             return null;
         }
@@ -451,36 +589,51 @@
             renderPresets();
             startTipRotation();
             
-            // Strict Auth Init with Error Handling for Custom Token Mismatch
+            const unlockAudio = () => {
+                const utterance = new SpeechSynthesisUtterance('');
+                synth.speak(utterance);
+                document.removeEventListener('click', unlockAudio);
+                document.removeEventListener('touchstart', unlockAudio);
+            };
+            document.addEventListener('click', unlockAudio);
+            document.addEventListener('touchstart', unlockAudio);
+            
             const initAuth = async () => {
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } else {
-                        // Use anonymous auth for public display (read-only)
                         await signInAnonymously(auth);
                     }
                 } catch (error) {
-                    console.warn("Auth initialization failed (token mismatch or other), attempting fallback to anonymous:", error);
-                    // Fallback to anonymous auth to ensure display board works even if token is bad
-                    try {
-                        await signInAnonymously(auth);
-                    } catch (fallbackError) {
-                        console.error("Fallback anonymous auth also failed:", fallbackError);
-                    }
+                    try { await signInAnonymously(auth); } catch (e) {}
                 }
             };
             initAuth();
 
+            setInterval(() => {
+                if (!isAdmin) return; 
+                
+                ['xu', 'lin'].forEach(docKey => {
+                    const rules = schedules[docKey];
+                    const mandate = getScheduledState(rules);
+                    
+                    if (mandate) {
+                        const currentStatus = currentData[docKey].statusType;
+                        if (currentStatus !== mandate.statusType) {
+                            console.log(`Enforcing schedule for ${docKey}: ${mandate.statusType}`);
+                            updateDoctorDB(docKey, mandate);
+                        }
+                    }
+                });
+            }, 5000);
+
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
                 if (user) {
-                    // Standard Firebase User Check
                     if (!user.isAnonymous) {
                         enableAdminMode();
                     } else {
-                        // FORCE PATIENT VIEW for Anonymous Users
-                        // Even if isAdmin was somehow true, anon users can't be admins here.
                         isAdmin = false;
                         els.patientView.classList.remove('hidden');
                         els.adminView.classList.add('hidden');
@@ -495,6 +648,8 @@
             els.loginModal.classList.add('hidden');
             els.patientView.classList.add('hidden');
             els.adminView.classList.remove('hidden');
+            // Re-apply role in case it was set before
+            if(currentRole) applyRoleLayout(currentRole);
             fetchSettings();
         }
 
@@ -515,17 +670,11 @@
         }
 
         async function saveSettingsToDB() {
-            // STRICT: Only allow if logged in and NOT anonymous
             if (!currentUser || currentUser.isAnonymous) return;
-            
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinicStatus', 'settings');
                 await setDoc(docRef, { schedules: schedules }, { merge: true });
                 alert("排程規則已儲存");
-                ['xu', 'lin'].forEach(docKey => {
-                    const scheduled = getScheduledState(schedules[docKey]);
-                    if(scheduled) checkAndApplySchedule(docKey, currentData[docKey], scheduled);
-                });
             } catch (e) { console.error("Save Error", e); }
         }
 
@@ -545,9 +694,21 @@
                         currentData.healthTip = remoteData.healthTip;
                     }
                     
-                    if (remoteData.xu) currentData.xu = { ...currentData.xu, ...remoteData.xu };
+                    if (remoteData.xu) {
+                        const newNum = remoteData.xu.number;
+                        if (lastKnownNums.xu !== null && newNum !== lastKnownNums.xu && newNum > 0) {
+                            speak(`一診，${newNum}號，請至診間看診`);
+                        }
+                        lastKnownNums.xu = newNum;
+                        currentData.xu = { ...currentData.xu, ...remoteData.xu };
+                    }
                     
                     if (remoteData.lin) {
+                        const newNum = remoteData.lin.number;
+                        if (lastKnownNums.lin !== null && newNum !== lastKnownNums.lin && newNum > 0) {
+                            speak(`二診，${newNum}號，請至診間看診`);
+                        }
+                        lastKnownNums.lin = newNum;
                         currentData.lin = { ...currentData.lin, ...remoteData.lin };
                     } else if (remoteData.number !== undefined) {
                         currentData.lin = {
@@ -572,10 +733,6 @@
 
         async function checkAndApplySchedule(docKey, docData, scheduled) {
             if (docData.statusType === scheduled.statusType) return;
-            
-            // Only admins or system (via backend func) should update. 
-            // Here we rely on the logged-in admin client to trigger this. 
-            // Anonymous clients should NOT trigger DB writes.
             if (!currentUser || currentUser.isAnonymous) return;
 
             const lastUpdate = docData.updatedAt ? new Date(docData.updatedAt) : new Date(0);
@@ -592,7 +749,7 @@
 
         // --- UI Rendering ---
         function renderUI() {
-            renderDoctorCard(currentData.xu, els.numXu, els.badgeXu, els.txtXu, els.iconXu, els.borderXu, 'bg-cyan-100 text-cyan-800', 'bg-cyan-600', 'text-cyan-700');
+            renderDoctorCard(currentData.xu, els.numXu, els.badgeXu, els.txtXu, els.iconXu, els.borderXu, 'bg-amber-100 text-amber-900', 'bg-amber-800', 'text-amber-900');
             renderDoctorCard(currentData.lin, els.numLin, els.badgeLin, els.txtLin, els.iconLin, els.borderLin, 'bg-emerald-100 text-emerald-800', 'bg-emerald-600', 'text-emerald-700');
             
             if (isAdmin) {
@@ -642,7 +799,7 @@
             badgeEl.textContent = docData.statusText;
             
             let badgeClass = '';
-            if (docData.statusType === 'active') badgeClass = docKey === 'xu' ? 'bg-cyan-100 text-cyan-700' : 'bg-emerald-100 text-emerald-700';
+            if (docData.statusType === 'active') badgeClass = docKey === 'xu' ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-700';
             else if (docData.statusType === 'break') badgeClass = 'bg-orange-100 text-orange-700';
             else if (docData.statusType === 'waiting') badgeClass = 'bg-blue-100 text-blue-700';
             else badgeClass = 'bg-slate-200 text-slate-600';
@@ -661,7 +818,7 @@
             const baseClass = 'btn-press py-2 rounded-lg border border-slate-200 text-slate-500 text-sm font-bold flex items-center justify-center gap-1';
             
             // Reset styles
-            btns.active.className = `${baseClass} hover:bg-${docKey==='xu'?'cyan':'emerald'}-50 hover:border-${docKey==='xu'?'cyan':'emerald'}-200 hover:text-${docKey==='xu'?'cyan':'emerald'}-700`;
+            btns.active.className = `${baseClass} hover:bg-${docKey==='xu'?'amber':'emerald'}-50 hover:border-${docKey==='xu'?'amber':'emerald'}-200 hover:text-${docKey==='xu'?'amber':'emerald'}-700`;
             btns.break.className = `${baseClass} hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700`;
             btns.waiting.className = `${baseClass} hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700`;
             btns.closed.className = `${baseClass} hover:bg-slate-100 hover:border-slate-300`;
@@ -669,7 +826,7 @@
             const activeBtn = Object.values(btns).find(b => b.id.includes(activeType));
             if(activeBtn) {
                 let activeClass = '';
-                if (activeType === 'active') activeClass = docKey === 'xu' ? 'bg-cyan-600 text-white border-cyan-600 shadow-md' : 'bg-emerald-600 text-white border-emerald-600 shadow-md';
+                if (activeType === 'active') activeClass = docKey === 'xu' ? 'bg-amber-800 text-white border-amber-800 shadow-md' : 'bg-emerald-600 text-white border-emerald-600 shadow-md';
                 else if (activeType === 'break') activeClass = 'bg-orange-500 text-white border-orange-500 shadow-md';
                 else if (activeType === 'waiting') activeClass = 'bg-blue-500 text-white border-blue-500 shadow-md';
                 else if (activeType === 'closed') activeClass = 'bg-slate-500 text-white border-slate-500 shadow-md';
@@ -683,7 +840,7 @@
             const rules = schedules[activeSettingDoc];
             
             if(activeSettingDoc === 'xu') {
-                els.schedTabXu.className = "flex-1 py-2 text-sm font-bold rounded-md bg-white text-cyan-800 shadow-sm transition-all";
+                els.schedTabXu.className = "flex-1 py-2 text-sm font-bold rounded-md bg-white text-amber-900 shadow-sm transition-all";
                 els.schedTabLin.className = "flex-1 py-2 text-sm font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all";
             } else {
                 els.schedTabLin.className = "flex-1 py-2 text-sm font-bold rounded-md bg-white text-emerald-800 shadow-sm transition-all";
@@ -776,6 +933,21 @@
         els.schedTabXu.onclick = () => { activeSettingDoc = 'xu'; renderScheduleList(); };
         els.schedTabLin.onclick = () => { activeSettingDoc = 'lin'; renderScheduleList(); };
 
+        // Role Switching Logic
+        els.btnOpenRoleSwitch.onclick = () => els.roleSwitchModal.classList.remove('hidden');
+        els.btnCloseRoleSwitch.onclick = () => els.roleSwitchModal.classList.add('hidden');
+        
+        // Attach click handlers to role options
+        document.querySelectorAll('.role-option').forEach(btn => {
+            btn.onclick = (e) => {
+                // Find button element even if span was clicked
+                const target = e.target.closest('button');
+                const role = target.getAttribute('data-role');
+                applyRoleLayout(role);
+                els.roleSwitchModal.classList.add('hidden');
+            };
+        });
+
         document.getElementById('btn-inc-2-xu').onclick = () => updateDoctorDB('xu', { number: currentData.xu.number + 2 });
         document.getElementById('btn-dec-2-xu').onclick = () => updateDoctorDB('xu', { number: currentData.xu.number - 2 });
         document.getElementById('btn-inc-1-xu').onclick = () => updateDoctorDB('xu', { number: currentData.xu.number + 1 });
@@ -818,6 +990,7 @@
         document.getElementById('btn-confirm-login').onclick = async () => {
             const email = els.inputEmail.value;
             const password = els.inputPassword.value;
+            currentRole = els.loginRole.value; // Capture role selection
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
